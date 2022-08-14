@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const userRoute = require("./routes/users")
+const authRoute = require("./routes/auth")
 
 dotenv.config();
 
@@ -22,9 +24,8 @@ app.use(helmet());
 app.use(morgan("common"));
 
 
-app.get("/", (request, response) => {
-    response.send("Welcome to the Home page");
-});
+app.use("/api/users", userRoute);
+app.use("/api/auth", authRoute);
 
 app.listen(3000, () => {
     console.log('Server started on port 3000');
