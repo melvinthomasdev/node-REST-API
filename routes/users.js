@@ -60,7 +60,48 @@ router.get("/:id", async (request, response) => {
     }
 })
 
-// TODO: Follow a User
-// TODO: Unfollow a User
+// Follow a User
+router.put("/:id/follow", async (request, response) => {
+    if (request.body.userId !== request.params.id) {
+        try {
+            const user = await User.findById(request.params.id);
+            const currentUser = await User.findById(request.body.userId);
+            if (!user.followers.includes(request.body.userId)){
+                await user.updateOne({$push: {followers: request.body.userId}});
+                await currentUser.updateOne({$push: {followings: request.params.id}});
+                response.status(200).json({"message": "User has been followed"})
+            } else {
+                response.status(403).json({"message": "You already follow this user!"})
+            }
+        } catch (error){
+            console.log("Error is: " + error);
+            response.status(500).json(error)
+        }
+    } else {
+        response.status(403).json({"message": "You cant follow yourself!"})
+    }
+})
+
+// Unfollow a User
+router.put("/:id/unfollow", async (request, response) => {
+    if (request.body.userId !== request.params.id) {
+        try {
+            const user = await User.findById(request.params.id);
+            const currentUser = await User.findById(request.body.userId);
+            if (user.followers.includes(request.body.userId)){
+                await user.updateOne({$pull: {followers: request.body.userId}});
+                await currentUser.updateOne({$pull: {followings: request.params.id}});
+                response.status(200).json({"message": "User has been unfollowed"})
+            } else {
+                response.status(403).json({"message": "You are not following this user!"})
+            }
+        } catch (error){
+            console.log("Error is: " + error);
+            response.status(500).json(error)
+        }
+    } else {
+        response.status(403).json({"message": "You cant unfollow yourself!"})
+    }
+})
 
 module.exports = router
