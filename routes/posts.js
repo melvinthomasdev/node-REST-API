@@ -5,6 +5,7 @@ const Post = require("../models/Post");
 
 // Create post
 router.post("/", async (request, response) => {
+    console.log(request.body)
     const newPost = new Post(request.body);
     try {
         const post = await newPost.save();
@@ -14,26 +15,24 @@ router.post("/", async (request, response) => {
         });
     } catch(error) {
         console.log("Error is: " + error);
-        response.status(500).json({"message": "Some Error"})
+        // response.status(500).json({"message": "Some Error"})
+        response.status(500).json(error)
     }
 });
 
 // Update a post
 router.put("/:id", async (request, response) => {
     try {
-        const post = Post.findById(request.params.id);
+        const post = await Post.findById(request.params.id); 
         if (post.userId === request.body.userId){
             await post.updateOne({$set: request.body})
-            response.status(200).json({
-                "message": "post Updated",
-                "post": post
-            })
+            response.status(200).json({"message": "post Updated"})
         } else {
             response.status(403).json({"message": "You can only update your own post!"})
         }
     } catch(error) {
         console.log("Error is: " + error);
-        response.status(500).json({"message": "Some Error!"});
+        response.status(500).json(error);
     }
 });
 
@@ -49,50 +48,35 @@ router.delete("/:id", async (request, response) => {
         }
     } catch(error){
         console.log("Error is: " + error)
-        response.status(500).json({"message": "Some Error"})
+        response.status(500).json(error)
     }
 });
 
 // Like a  post
 router.put("/:id/like", async (request, response) => {
     try {
-        const post = Post.findById(request.params.id);
+        const post = await Post.findById(request.params.id);
         if (!post.likes.includes(request.body.userId)){
-            post.updateOne({$push: {likes: request.body.userId}});
+            await post.updateOne({$push: {likes: request.body.userId}});
             response.status(200).json({"message": "Liked post"})
         } else {
-            response.status(403).json({"message": "You already liked this post"})
-        }
-    } catch(error){
-        console.log("Error is: " + error);
-        response.status(500).json({"message": "Some Error"});
-    }
-})
-
-// Unike a  post
-router.put("/:id/unlike", async (request, response) => {
-    try {
-        const post = Post.findById(request.params.id);
-        if (post.likes.includes(request.body.userId)){
             await post.updateOne({$pull: {likes: request.body.userId}});
             response.status(200).json({"message": "Unliked post"})
-        } else {
-            response.status(403).json({"message": "You haven't liked this post!"})
         }
     } catch(error){
         console.log("Error is: " + error);
-        response.status(500).json({"message": "Some Error"});
+        response.status(500).json(error);
     }
 })
 
 // Get a post
 router.get("/:id", async (request, response) => {
     try {
-        const post = Post.findById(request.params.id);
-        response.status(200).json(post);
+        const post = await Post.findById(request.params.id);
+        response.status(200).json({"message": post});
     } catch(error){
         console.log("Error is: " + error);
-        response.status(500).json({"message": "Some Error"});
+        response.status(500).json(error);
     }
 })
 
