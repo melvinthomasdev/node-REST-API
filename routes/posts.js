@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { request } = require("express");
 const Post = require("../models/Post");
+const User = require("../models/User");
 
 
 // Create post
@@ -15,7 +16,7 @@ router.post("/", async (request, response) => {
         });
     } catch(error) {
         console.log("Error is: " + error);
-        // response.status(500).json({"message": "Some Error"})
+        response.status(500).json({"message": "Some Error"})
         response.status(500).json(error)
     }
 });
@@ -78,8 +79,32 @@ router.get("/:id", async (request, response) => {
         console.log("Error is: " + error);
         response.status(500).json(error);
     }
-})
+});
 
 // get timeline posts
+router.get("/timeline/all", async (request, response) => {
+    console.log("OK1")
+    const data = [];
+    try {
+        const currentUser = await User.findById(request.body.userId);
+        console.log(currentUser.username);
+        console.log(currentUser._id);
+        const userPosts = await Post.find({userId: currentUser._id});
+        console.log("ok")
+        console.log("ibdem bare bannnnn!")
+        const friendPosts = Promise.all(
+            currentUser.followings.map((friendId) => {
+                return Post.find({userId: friendId});
+            })
+        );
+        console.log(userPosts.length);
+        console.log(friendPosts.length);
+        response.status(200).json(userPosts.concat(friendPosts));
+    }catch(error){
+        console.log("Error is: " + error)
+        response.status(500).json(error);
+    }
+})
+
 
 module.exports = router;
